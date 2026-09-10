@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <title>Bridgebound — Legends Arena</title>
+
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap");
+
+    :root {
+      color-scheme: dark;
+      --bg: #070d18;
+      --panel: #101c2d;
+      --gold: #ffd477;
+      --blue: #59c8ff;
+      --purple: #bd79ff;
+      --text: #eff7ff;
+      --muted: #94a7bf;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      color: var(--text);
+      background: var(--bg);
+      font-family: Inter, system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 3px;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      text-transform: uppercase;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 4px;
+    }
+
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      overflow-y: auto;
+      background:
+        radial-gradient(ellipse at 15% 0%, #153c5866, transparent 55%),
+        radial-gradient(ellipse at 95% 80%, #66359333, transparent 50%),
+        #070d18f5;
+    }
+
+    .lobby {
+      max-width: 1240px;
+      margin: auto;
+      padding: 40px 28px;
+    }
+
+    .lobby-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 22px;
+      margin-bottom: 25px;
+    }
+
+    h1 {
+      margin: 8px 0;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(48px, 8vw, 86px);
+      font-weight: 800;
+      line-height: .95;
+      letter-spacing: 1px;
+    }
+
+    h1 span {
+      color: var(--gold);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 560px;
+    }
+
+    .status-chip {
+      flex-shrink: 0;
+      border: 1px solid #39566b;
+      padding: 10px 15px;
+      border-radius: 30px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: #a6f4c3;
+      background: #102b25;
+    }
+
+    .lobby-grid {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 14px;
+    }
+
+    .section-header h2 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    #deck-count {
+      font-size: 12px;
+      color: var(--gold);
+    }
+
+    #deck-builder {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .deck-card {
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+      border: 1px solid #293c53;
+      border-radius: 13px;
+      background: linear-gradient(150deg, #1d3049, #0c1625);
+      color: white;
+      text-align: left;
+      transition: transform .18s, border-color .18s, box-shadow .18s;
+    }
+
+    .deck-card:hover:not(:disabled) {
+      transform: translateY(-4px);
+      border-color: #739abd;
+    }
+
+    .deck-card.selected {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px #ffd47744, 0 5px 24px #ffd4770d;
+    }
+
+    .portrait-wrap {
+      position: relative;
+      height: 125px;
+      background:
+        radial-gradient(ellipse at bottom, var(--accent), transparent 76%),
+        linear-gradient(#101c2d, #1a2c42);
+    }
+
+    .portrait-wrap img {
+      display: block;
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 7px #0007);
+    }
+
+    .cost-badge {
+      position: absolute;
+      top: 9px;
+      left: 9px;
+      display: grid;
+      place-items: center;
+      width: 27px;
+      height: 31px;
+      background: linear-gradient(#db9cff, #8443c5);
+      border: 1px solid #ecbcff;
+      border-radius: 10px 10px 12px 12px;
+      color: white;
+      font-weight: 800;
+      font-size: 14px;
+      box-shadow: 0 2px 8px #0005;
+    }
+
+    .picked {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: var(--gold);
+      opacity: 0;
+      font-weight: 900;
+    }
+
+    .selected .picked {
+      opacity: 1;
+    }
+
+    .card-info {
+      padding: 10px 12px 12px;
+      border-top: 1px solid #ffffff0a;
+    }
+
+    .card-name {
+      display: block;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .card-role {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .side-panel {
+      padding: 22px;
+      border: 1px solid #2b3d54;
+      border-radius: 16px;
+      background: linear-gradient(145deg, #192940, #0c1625);
+      box-shadow: 0 14px 40px #0003;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #b6c8dd;
+      margin-bottom: 9px;
+      text-transform: uppercase;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #3c526c;
+      border-radius: 9px;
+      background: #081321;
+      color: white;
+    }
+
+    .primary {
+      width: 100%;
+      padding: 15px 18px;
+      border: 1px solid #ffe5a1;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ffe09a, #eeb04c);
+      color: #2a210e;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      box-shadow: 0 6px 24px #efb95022;
+    }
+
+    #findButton {
+      margin-top: 15px;
+    }
+
+    .secondary {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #405775;
+      border-radius: 8px;
+      color: white;
+      background: #203049;
+    }
+
+    #search-status {
+      color: var(--gold);
+      line-height: 1.6;
+      font-size: 12px;
+      min-height: 24px;
+      margin-top: 13px;
+    }
+
+    .instructions {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      border-top: 1px solid #ffffff12;
+      padding-top: 16px;
+      margin-top: 17px;
+    }
+
+    #stats-container {
+      margin-top: 20px;
+      border-top: 1px solid #ffffff12;
+      padding-top: 16px;
+      font-size: 12px;
+    }
+
+    #stats-container h3 {
+      color: var(--gold);
+      font-size: 12px;
+      margin: 18px 0 10px;
+    }
+
+    #leaderboard {
+      padding-left: 20px;
+      color: #b6c8dd;
+    }
+
+    #leaderboard li {
+      padding: 5px 0;
+      overflow-wrap: anywhere;
+    }
+
+    #game {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #07131d;
+    }
+
+    .battle-header {
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      padding: 0 24px;
+      border-bottom: 1px solid #ffffff14;
+      background: linear-gradient(90deg, #15273c, #0a1525, #15273c);
+      box-shadow: 0 6px 25px #0003;
+    }
+
+    .commander {
+      font-size: 12px;
+      max-width: 35%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .commander.enemy {
+      color: #ff9e9e;
+    }
+
+    .commander.friendly {
+      color: #8edbff;
+    }
+
+    #timer {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 2px;
+    }
+
+    #viewport {
+      position: relative;
+      min-height: 0;
+      flex: 1;
+    }
+
+    #arena {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    #notice {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 92%;
+      width: max-content;
+      padding: 9px 15px;
+      border-radius: 30px;
+      border: 1px solid #ffffff17;
+      background: #071321cc;
+      color: #d5e5f4;
+      font-size: 11px;
+      text-align: center;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .battle-footer {
+      z-index: 2;
+      padding: 11px 18px 14px;
+      background: linear-gradient(#142239, #091422);
+      border-top: 1px solid #45607c;
+    }
+
+    .footer-inner {
+      max-width: 960px;
+      margin: auto;
+    }
+
+    .elixir-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .elixir-track {
+      height: 9px;
+      flex: 1;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #342848;
+      border: 1px solid #71518c;
+    }
+
+    #elixir-fill {
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, #8a4cdf, #efadff);
+      box-shadow: 0 0 15px #e4a3ff;
+      transition: width .12s linear;
+    }
+
+    #hand {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 8px;
+      touch-action: none;
+    }
+
+    .hand-card {
+      position: relative;
+      height: 84px;
+      overflow: hidden;
+      border: 1px solid #405a79;
+      border-radius: 9px;
+      color: white;
+      background:
+        radial-gradient(ellipse at bottom, var(--accent), transparent),
+        #14243b;
+      padding: 0;
+      user-select: none;
+      touch-action: none;
+      transition: border-color .15s, transform .15s, opacity .15s;
+    }
+
+    .hand-card img {
+      position: absolute;
+      width: 100%;
+      height: 90%;
+      left: 0;
+      top: -6px;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .hand-card .cost-badge {
+      top: 4px;
+      left: 4px;
+      width: 19px;
+      height: 23px;
+      font-size: 11px;
+      border-radius: 7px;
+    }
+
+    .hand-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 5px 2px;
+      background: #06101bdd;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .hand-card.selected {
+      border: 2px solid var(--gold);
+      transform: translateY(-4px);
+      box-shadow: 0 0 16px #ffd47726;
+    }
+
+    .hand-card.poor {
+      opacity: .43;
+      filter: saturate(.5);
+    }
+
+    #result-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #030a16bb;
+      backdrop-filter: blur(10px);
+    }
+
+    .result-panel {
+      width: min(440px, 100%);
+      padding: 40px;
+      text-align: center;
+      border: 1px solid #a58448;
+      border-radius: 22px;
+      background:
+        radial-gradient(ellipse at top, #6e583333, transparent),
+        #101d30;
+      box-shadow: 0 30px 100px #0009;
+    }
+
+    #result-title {
+      margin: 12px 0;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 66px;
+      line-height: 1;
+      color: var(--gold);
+    }
+
+    #result-detail {
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 26px;
+      font-size: 13px;
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 30px;
+      background: #070d18;
+      color: var(--gold);
+      text-align: center;
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+
+    @media (max-width: 760px) {
+      .lobby {
+        padding: 26px 16px;
+      }
+
+      .lobby-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .side-panel {
+        grid-row: 1;
+        padding: 17px;
+      }
+
+      .status-chip {
+        display: none;
+      }
+
+      .instructions {
+        display: none;
+      }
+
+      #stats-container {
+        margin-top: 12px;
+        padding-top: 12px;
+      }
+
+      #stats-container h3 {
+        margin-top: 10px;
+      }
+
+      #leaderboard {
+        max-height: 82px;
+        overflow-y: auto;
+        margin-bottom: 0;
+      }
+
+      #deck-builder {
+        gap: 8px;
+      }
+
+      .portrait-wrap {
+        height: 100px;
+      }
+
+      .card-info {
+        padding: 8px;
+      }
+
+      .card-name {
+        font-size: 11px;
+      }
+
+      .card-role {
+        font-size: 9px;
+      }
+
+      .battle-header {
+        padding: 0 12px;
+        height: 49px;
+      }
+
+      .battle-footer {
+        padding: 9px 9px 12px;
+      }
+
+      #hand {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .hand-card {
+        height: 60px;
+      }
+
+      .hand-name {
+        font-size: 9px;
+        padding: 3px;
+      }
+
+      #notice {
+        font-size: 10px;
+        bottom: 5px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loading">BUILDING YOUR 3D ARENA…</div>
+
+  <section id="start-screen">
+    <div class="lobby">
+      <header class="lobby-header">
+        <div>
+          <div class="eyebrow">Real-time multiplayer • 3D card battler</div>
+          <h1>BRIDGEBOUND<br><span>LEGENDS ARENA</span></h1>
+          <p class="subtitle">
+            Eight cards. Two bridges. One King.
+            Assemble your fighters and take control of the battlefield.
+          </p>
+        </div>
+
+        <div class="status-chip">● LIVE MULTIPLAYER</div>
+      </header>
+
+      <div class="lobby-grid">
+        <section>
+          <div class="section-header">
+            <h2>BUILD YOUR DECK</h2>
+            <span id="deck-count">8 / 8 SELECTED</span>
+          </div>
+
+          <div id="deck-builder"></div>
+        </section>
+
+        <aside class="side-panel">
+          <label for="usernameInput">Commander name</label>
+
+          <input
+            id="usernameInput"
+            maxlength="20"
+            placeholder="Guest"
+            autocomplete="nickname"
+          >
+
+          <button id="findButton" class="primary">FIND MATCH!</button>
+          <button id="cancelButton" class="secondary" hidden>
+            CANCEL SEARCH
+          </button>
+
+          <div id="search-status" role="status" aria-live="polite"></div>
+
+          <div class="instructions">
+            <strong>HOW TO PLAY</strong><br>
+            Select a fighter and tap your half of the arena,
+            or drag the card onto the battlefield.<br><br>
+            Elixir regenerates automatically. Destroy the enemy King
+            before yours falls.
+          </div>
+
+          <div id="stats-container">
+            🟢 Online players: <strong id="online-count">—</strong>
+            <h3>TOP COMMANDERS</h3>
+            <ol id="leaderboard"><li>No wins yet</li></ol>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <main id="game" hidden>
+    <header class="battle-header">
+      <span id="opponent-name" class="commander enemy">ENEMY</span>
+      <span id="timer">3:00</span>
+      <span id="player-name" class="commander friendly">YOU</span>
+    </header>
+
+    <div id="viewport">
+      <canvas id="arena" aria-label="3D multiplayer battle arena"></canvas>
+      <div id="notice">Select a fighter. Deploy below the river.</div>
+    </div>
+
+    <footer class="battle-footer">
+      <div class="footer-inner">
+        <div class="elixir-row">
+          <span style="color:#dfafff">◆ ELIXIR</span>
+          <div class="elixir-track"><div id="elixir-fill"></div></div>
+          <span id="elixir-value">5 / 10</span>
+        </div>
+
+        <div id="hand"></div>
+      </div>
+    </footer>
+  </main>
+
+  <section id="result-screen" hidden>
+    <div class="result-panel">
+      <div class="eyebrow">Battle complete</div>
+      <h2 id="result-title">VICTORY</h2>
+      <p id="result-detail"></p>
+      <button id="playAgainButton" class="primary">PLAY AGAIN</button>
+    </div>
+  </section>
+
+  <script type="module">
+    const $ = id => document.getElementById(id);
+
+    let THREE;
+
+    try {
+      THREE = await import(
+        "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+      );
+    } catch (error) {
+      $("loading").textContent =
+        "Could not load the 3D engine. Check your internet connection and refresh.";
+      throw error;
+    }
+
+    const W = 480;
+    const H = 720;
+    const SCALE = 20;
+
+    const CARDS = {
+      knight: {
+        name: "Knight", cost: 3, role: "Balanced melee",
+        suit: "#879db2", accent: "#4a7896", skin: "#dfad86",
+        hair: "#5d3d2b", style: "helmet", weapon: "sword",
+        height: 1, hp: 360
+      },
+      archer: {
+        name: "Archer", cost: 3, role: "Ranged support",
+        suit: "#4b965e", accent: "#38794c", skin: "#f1bb96",
+        hair: "#c86c38", style: "long", weapon: "bow",
+        height: .95, hp: 155
+      },
+      giant: {
+        name: "Giant", cost: 5, role: "Building destroyer",
+        suit: "#896044", accent: "#a97842", skin: "#dfab77",
+        hair: "#a5652c", style: "short",
+        height: 1.6, hp: 1000
+      },
+      goblin: {
+        name: "Goblin", cost: 2, role: "Fast attacker",
+        suit: "#795740", accent: "#55883b", skin: "#83bd57",
+        hair: "#29492a", style: "goblin", weapon: "dagger",
+        height: .76, hp: 130
+      },
+      brute: {
+        name: "Brute", cost: 4, role: "Heavy melee",
+        suit: "#5f547a", accent: "#735f98", skin: "#d3a283",
+        hair: "#292537", style: "helmet", weapon: "axe",
+        height: 1.28, hp: 530
+      },
+      mage: {
+        name: "Mage", cost: 4, role: "Arcane ranged",
+        suit: "#6950ba", accent: "#8460d2", skin: "#e2b89b",
+        hair: "#dadbe3", style: "wizard", weapon: "staff",
+        height: 1, hp: 215
+      },
+      goku: {
+        name: "Goku", cost: 5, role: "Ki brawler",
+        suit: "#ff791c", accent: "#ef9837", skin: "#efb58b",
+        hair: "#141827", style: "spiky", trim: "#163f9c",
+        height: 1.08, hp: 620
+      },
+      vegeta: {
+        name: "Vegeta", cost: 5, role: "Elite ki fighter",
+        suit: "#244ccb", accent: "#465ad4", skin: "#e8b38f",
+        hair: "#111624", style: "tall", armor: true,
+        height: 1.0, hp: 560
+      },
+      piccolo: {
+        name: "Piccolo", cost: 4, role: "Durable ranged",
+        suit: "#613b9e", accent: "#6b5c9e", skin: "#79bb58",
+        hair: "#76af51", style: "piccolo", cape: "#ececf3",
+        height: 1.19, hp: 540
+      },
+      frieza: {
+        name: "Frieza", cost: 6, role: "Long-range elite",
+        suit: "#e5e0ef", accent: "#8b5daf", skin: "#e7deec",
+        hair: "#8949b9", style: "frieza", trim: "#8744b6",
+        height: 1.04, hp: 650
+      },
+      trunks: {
+        name: "Trunks", cost: 4, role: "Sword fighter",
+        suit: "#5c72bc", accent: "#657aba", skin: "#edb798",
+        hair: "#b8a0df", style: "long", weapon: "sword",
+        trim: "#242936", height: 1.04, hp: 440
+      },
+      gohan: {
+        name: "Gohan", cost: 4, role: "Agile ki fighter",
+        suit: "#8050b9", accent: "#8158ba", skin: "#efb894",
+        hair: "#19192a", style: "spiky", trim: "#d8423e",
+        height: .98, hp: 480
+      },
+      android18: {
+        name: "Android 18", cost: 3, role: "Efficient ranged",
+        suit: "#4485bf", accent: "#488fb9", skin: "#f0c8aa",
+        hair: "#f2cc65", style: "bob", trim: "#252d40",
+        height: .98, hp: 330
+      },
+      cell: {
+        name: "Cell", cost: 6, role: "Armored bruiser",
+        suit: "#69a543", accent: "#5c9c43", skin: "#c3cba2",
+        hair: "#6baf43", style: "cell", trim: "#242c38",
+        height: 1.26, hp: 900
+      }
+    };
+
+    const deck = new Set([
+      "knight", "archer", "giant", "goblin",
+      "goku", "vegeta", "piccolo", "trunks"
+    ]);
+
+    let ws = null;
+    let connecting = false;
+    let inMatch = false;
+    let over = false;
+    let roomId = null;
+    let side = 0;
+    let selectedCard = null;
+    let elixir = 5;
+    let remaining = 180;
+    let dragging = false;
+    let previewPoint = null;
+    let noticeUntil = 0;
+
+    const units = new Map();
+    const towerModels = new Map();
+    const handButtons = new Map();
+    const portraits = {};
+    const effects = [];
+
+    const canvas = $("arena");
+
+    let renderer;
+
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: false,
+        powerPreference: "high-performance"
+      });
+    } catch (error) {
+      $("loading").textContent =
+        "This browser could not start WebGL. Try a recent browser with hardware acceleration enabled.";
+      throw error;
+    }
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.7));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color("#0a1925");
+    scene.fog = new THREE.Fog("#0a1925", 55, 115);
+
+    const camera = new THREE.PerspectiveCamera(40, 1, .1, 180);
+
+    scene.add(new THREE.HemisphereLight("#c8e8ff", "#526043", 2.4));
+
+    const sun = new THREE.DirectionalLight("#ffe9bf", 3.3);
+    sun.position.set(-15, 30, 15);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -26;
+    sun.shadow.camera.right = 26;
+    sun.shadow.camera.top = 28;
+    sun.shadow.camera.bottom = -28;
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 90;
+    sun.shadow.normalBias = .045;
+    sun.shadow.bias = -.00015;
+    scene.add(sun);
+
+    const rimLight = new THREE.DirectionalLight("#699dff", 1.5);
+    rimLight.position.set(12, 12, -20);
+    scene.add(rimLight);
+
+    const materialCache = new Map();
+
+    function material(color, metalness = 0, roughness = .75) {
+      const key = `${color}/${metalness}/${roughness}`;
+      if (!materialCache.has(key)) {
+        materialCache.set(
+          key,
+          new THREE.MeshStandardMaterial({
+            color,
+            metalness,
+            roughness
+          })
+        );
+      }
+      return materialCache.get(key);
+    }
+
+    const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+    const sphereGeo = new THREE.SphereGeometry(1, 12, 9);
+    const cylinderGeo = new THREE.CylinderGeometry(1, 1, 1, 12);
+    const coneGeo = new THREE.ConeGeometry(1, 1, 7);
+
+    function shape(parent, geometry, mat, x, y, z, sx, sy, sz) {
+      const mesh = new THREE.Mesh(geometry, mat);
+      mesh.position.set(x, y, z);
+      mesh.scale.set(sx, sy, sz);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      parent.add(mesh);
+      return mesh;
+    }
+
+    function box(parent, color, x, y, z, sx, sy, sz, metal = 0) {
+      return shape(
+        parent, boxGeo, material(color, metal),
+        x, y, z, sx, sy, sz
+      );
+    }
+
+    function ball(parent, color, x, y, z, sx, sy = sx, sz = sx) {
+      return shape(
+        parent, sphereGeo, material(color),
+        x, y, z, sx, sy, sz
+      );
+    }
+
+    function cylinder(parent, color, x, y, z, radius, height, metal = 0) {
+      return shape(
+        parent, cylinderGeo, material(color, metal),
+        x, y, z, radius, height, radius
+      );
+    }
+
+    function cone(parent, color, x, y, z, radius, height) {
+      return shape(
+        parent, coneGeo, material(color),
+        x, y, z, radius, height, radius
+      );
+    }
+
+    function worldPoint(x, y) {
+      return {
+        x: (x - W / 2) / SCALE,
+        z: (y - H / 2) / SCALE
+      };
+    }
+
+    function localPoint(x, y) {
+      return side === 0
+        ? { x, y }
+        : { x: W - x, y: H - y };
+    }
+
+    // A small seeded generator keeps scenery consistent between reloads.
+    let randomSeed = 9182;
+    function random() {
+      randomSeed = (randomSeed * 1664525 + 1013904223) >>> 0;
+      return randomSeed / 4294967296;
+    }
+
+    // -------------------- ARENA --------------------
+
+    const arena = new THREE.Group();
+    scene.add(arena);
+
+    box(arena, "#263947", 0, -1.2, 0, 27.5, 2.2, 39.5);
+    box(arena, "#786d56", 0, -.42, 0, 26.4, .65, 38.4);
+    box(arena, "#55794b", 0, -.12, -9.5, 24, .3, 17);
+    box(arena, "#608654", 0, -.12, 9.5, 24, .3, 17);
+
+    // Checkerboard grass tiles.
+    for (let row = 0; row < 18; row++) {
+      for (let col = 0; col < 12; col++) {
+        const z = -17 + row * 2;
+        if (Math.abs(z) < 1.1) continue;
+
+        box(
+          arena,
+          (row + col) % 2 ? "#608753" : "#587e4d",
+          -11 + col * 2, .04, z,
+          1.98, .05, 1.98
+        );
+      }
+    }
+
+    // Stone boundary.
+    for (let z = -18; z <= 18; z += 1.15) {
+      for (const x of [-12.5, 12.5]) {
+        box(arena, "#85918e", x, .1, z, .8, .48, 1.08);
+      }
+    }
+
+    for (let x = -12; x <= 12; x += 1.15) {
+      for (const z of [-18.55, 18.55]) {
+        box(arena, "#8c958f", x, .1, z, 1.08, .48, .8);
+      }
+    }
+
+    // Warm cobbled lanes.
+    for (const x of [-5.5, 5.5]) {
+      for (let z = -15; z <= 15; z += .85) {
+        if (Math.abs(z) < 1.5) continue;
+
+        for (let j = 0; j < 2; j++) {
+          box(
+            arena,
+            j % 2 ? "#ab9a72" : "#b3a57f",
+            x - .42 + j * .84, .09, z,
+            .78, .05, .77
+          );
+        }
+      }
+    }
+
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: "#208cab",
+      emissive: "#073a4c",
+      emissiveIntensity: .35,
+      metalness: .35,
+      roughness: .26,
+      transparent: true,
+      opacity: .9
+    });
+
+    shape(arena, boxGeo, waterMat, 0, -.035, 0, 24.2, .15, 2);
+
+    const waterLines = [];
+    for (let i = 0; i < 23; i++) {
+      const line = box(
+        arena, "#66c2cc",
+        -11.5 + i, .06, (random() - .5) * 1.7,
+        .3 + random() * .8, .018, .035
+      );
+      line.userData.phase = random() * Math.PI * 2;
+      waterLines.push(line);
+    }
+
+    // Two detailed bridges with planks, posts, rails, and supports.
+    for (const x of [-5.5, 5.5]) {
+      box(arena, "#533c2b", x, .12, 0, 3, .25, 3.3);
+
+      for (let z = -1.5; z <= 1.5; z += .27) {
+        box(arena, "#bf925c", x, .3, z, 2.8, .13, .23);
+      }
+
+      for (const offset of [-1.5, 1.5]) {
+        box(arena, "#936942", x + offset, .82, 0, .13, .15, 3.6);
+
+        for (const z of [-1.65, 0, 1.65]) {
+          box(arena, "#664b32", x + offset, .52, z, .2, 1.12, .2);
+          ball(arena, "#d7b16a", x + offset, 1.1, z, .15);
+        }
+      }
+    }
+
+    function tree(x, z, size) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+      group.scale.setScalar(size);
+      arena.add(group);
+
+      cylinder(group, "#654930", 0, .65, 0, .16, 1.3);
+      cone(group, "#244b3b", 0, 1.45, 0, .95, 1.8);
+      cone(group, "#32684b", 0, 2.05, 0, .73, 1.55);
+      cone(group, "#488058", 0, 2.6, 0, .5, 1.25);
+    }
+
+    for (let i = 0; i < 20; i++) {
+      const x = (i % 2 ? 1 : -1) * (13.5 + random() * 2);
+      const z = -18 + random() * 36;
+      tree(x, z, .65 + random() * .4);
+
+      ball(
+        arena, "#65777b",
+        x + (random() - .5), -.3, z + 1,
+        .5 + random() * .5, .5, .65
+      );
+    }
+
+    // Decorative corner crystals.
+    for (const x of [-11.3, 11.3]) {
+      for (const z of [-17.2, 17.2]) {
+        cylinder(arena, "#485b69", x, .4, z, .45, .8);
+        const crystal = cone(
+          arena, z > 0 ? "#66d5ff" : "#ff8997",
+          x, 1.15, z, .35, .9
+        );
+        crystal.material = new THREE.MeshStandardMaterial({
+          color: z > 0 ? "#66d5ff" : "#ff8997",
+          emissive: z > 0 ? "#1c85bb" : "#ae334e",
+          emissiveIntensity: .9,
+          metalness: .35,
+          roughness: .2
+        });
+      }
+    }
+
+    // -------------------- CHARACTER MODELS --------------------
+
+    function makeFighter(id, friendly = true, portrait = false) {
+      const card = CARDS[id];
+      const root = new THREE.Group();
+      const rig = new THREE.Group();
+      root.add(rig);
+      rig.scale.setScalar(card.height);
+
+      const skin = card.skin;
+      const suit = card.suit;
+      const trim = card.trim || "#25364c";
+
+      // Torso, belt, neck.
+      box(rig, suit, 0, 1.08, 0, .58, .63, .34);
+      box(rig, trim, 0, .83, .01, .62, .12, .37);
+      cylinder(rig, skin, 0, 1.48, 0, .12, .17);
+
+      // Chest seam / undershirt.
+      box(rig, trim, 0, 1.33, .177, .19, .2, .025);
+
+      const head = new THREE.Group();
+      head.position.y = 1.69;
+      rig.add(head);
+
+      ball(head, skin, 0, 0, 0, .235, .27, .215);
+
+      // Ears, eyes, brows, nose.
+      ball(head, skin, -.235, -.01, 0, .055, .085, .055);
+      ball(head, skin, .235, -.01, 0, .055, .085, .055);
+
+      for (const x of [-.085, .085]) {
+        box(head, "#f4f5f7", x, .025, .196, .09, .045, .022);
+        box(head, "#182331", x, .024, .211, .034, .039, .012);
+        const brow = box(
+          head, "#28232c", x, .078, .199, .107, .024, .027
+        );
+        brow.rotation.z = x < 0 ? -.12 : .12;
+      }
+
+      ball(head, skin, 0, -.033, .215, .033, .047, .047);
+      box(head, "#915f55", 0, -.13, .183, .073, .012, .013);
+
+      function spike(x, y, z, height, tiltX = 0, tiltZ = 0) {
+        const mesh = cone(head, card.hair, x, y, z, .115, height);
+        mesh.rotation.x = tiltX;
+        mesh.rotation.z = tiltZ;
+      }
+
+      if (card.style === "spiky" || card.style === "tall") {
+        ball(head, card.hair, 0, .17, -.035, .25, .15, .22);
+
+        for (let i = 0; i < 7; i++) {
+          const angle = i / 7 * Math.PI * 2;
+          const height = card.style === "tall" ? .53 : .39;
+          spike(
+            Math.cos(angle) * .15,
+            .34,
+            Math.sin(angle) * .13,
+            height + (i % 2) * .12,
+            Math.sin(angle) * .4,
+            -Math.cos(angle) * .5
+          );
+        }
+
+        spike(0, .48, -.05, card.style === "tall" ? .62 : .44);
+      } else if (card.style === "helmet") {
+        ball(head, "#a5b3c1", 0, .115, -.025, .28, .22, .25);
+        box(head, "#465467", 0, .04, .219, .46, .07, .04);
+        box(head, "#d4dbe2", 0, .08, .249, .047, .26, .04);
+      } else if (card.style === "wizard") {
+        cylinder(head, suit, 0, .22, 0, .37, .065);
+        cone(head, suit, 0, .52, -.03, .29, .62);
+        ball(head, "#dfdce9", 0, -.22, .15, .18, .22, .11);
+      } else if (card.style === "piccolo") {
+        cylinder(head, "#f1edf1", 0, .19, 0, .27, .19);
+        ball(head, "#eeeaf0", 0, .29, 0, .24, .13, .22);
+        for (const x of [-.26, .26]) {
+          const ear = cone(head, skin, x, .01, 0, .075, .25);
+          ear.rotation.z = x < 0 ? 1.05 : -1.05;
+        }
+      } else if (card.style === "frieza") {
+        ball(head, "#9047bd", 0, .14, -.025, .18, .15, .17);
+        ball(rig, "#9651bc", 0, 1.23, .17, .2, .16, .035);
+
+        // Curved tail using a small chain of overlapping segments.
+        for (let i = 0; i < 8; i++) {
+          ball(
+            rig, suit,
+            Math.sin(i * .3) * .4,
+            .7 - i * .04,
+            -.22 - i * .11,
+            .11 - i * .008
+          );
+        }
+      } else if (card.style === "cell") {
+        ball(head, "#65a93e", 0, .16, -.02, .26, .2, .24);
+        for (const x of [-.17, .17]) {
+          cone(head, "#62a53b", x, .45, 0, .14, .62);
+        }
+
+        for (const x of [-.24, .24]) {
+          const wing = box(
+            rig, "#25332b", x, 1.05, -.27, .3, .9, .08
+          );
+          wing.rotation.z = x < 0 ? -.2 : .2;
+        }
+
+        for (let i = 0; i < 12; i++) {
+          ball(
+            rig, "#263e2b",
+            Math.sin(i * 2.4) * .23,
+            .94 + (i % 4) * .11,
+            .178,
+            .032, .043, .018
+          );
+        }
+      } else if (card.style === "goblin") {
+        for (const x of [-.3, .3]) {
+          const ear = cone(head, skin, x, .02, 0, .1, .35);
+          ear.rotation.z = x < 0 ? 1.15 : -1.15;
+        }
+        spike(0, .26, -.04, .24);
+      } else {
+        ball(head, card.hair, 0, .17, -.02, .26, .17, .23);
+
+        if (["long", "bob"].includes(card.style)) {
+          for (const x of [-.22, .22]) {
+            box(head, card.hair, x, -.015, -.03, .11, .43, .28);
+          }
+          box(head, card.hair, 0, .02, -.19, .42, .4, .12);
+        }
+
+        box(head, card.hair, -.045, .13, .18, .3, .13, .08);
+      }
+
+      // Limbs have pivots so walking can animate naturally.
+      const legs = [];
+      const arms = [];
+
+      for (const sign of [-1, 1]) {
+        const leg = new THREE.Group();
+        leg.position.set(sign * .17, .81, 0);
+        rig.add(leg);
+        legs.push(leg);
+
+        box(leg, suit, 0, -.23, 0, .23, .45, .26);
+        ball(leg, suit, 0, -.43, 0, .115);
+        box(leg, trim, 0, -.58, .015, .24, .3, .27);
+        box(leg, trim, 0, -.74, .095, .25, .12, .43);
+        box(leg, "#d4a55f", 0, -.49, .159, .2, .045, .022);
+
+        const arm = new THREE.Group();
+        arm.position.set(sign * .39, 1.32, 0);
+        rig.add(arm);
+        arms.push(arm);
+
+        ball(arm, suit, 0, -.025, 0, .17);
+        box(arm, skin, 0, -.22, 0, .19, .31, .2);
+        box(arm, trim, 0, -.41, 0, .205, .15, .21);
+        ball(arm, skin, 0, -.54, .02, .12, .13, .115);
+        arm.rotation.z = sign * .1;
+      }
+
+      if (card.armor) {
+        box(rig, "#ece8d8", 0, 1.17, .215, .59, .44, .12);
+        box(rig, "#d5b973", 0, 1.07, .286, .42, .16, .035);
+
+        for (const x of [-.39, .39]) {
+          ball(rig, "#ebe7d9", x, 1.35, 0, .23, .13, .23);
+        }
+
+        for (const arm of arms) {
+          box(arm, "#f0efe9", 0, -.44, 0, .225, .25, .23);
+        }
+      }
+
+      if (card.cape) {
+        const cape = box(
+          rig, card.cape, 0, 1.02, -.25, .86, 1.05, .075
+        );
+        cape.rotation.x = -.17;
+        for (const x of [-.35, .35]) {
+          ball(rig, card.cape, x, 1.4, 0, .25, .13, .26);
+        }
+      }
+
+      if (card.weapon) {
+        const hand = arms[1];
+
+        if (["sword", "dagger"].includes(card.weapon)) {
+          cylinder(hand, "#473c32", 0, -.58, .07, .045, .3);
+          box(hand, "#dec889", 0, -.42, .07, .35, .06, .1);
+          box(
+            hand, "#d7e6ed",
+            0, card.weapon === "dagger" ? -.16 : .05, .07,
+            .075, card.weapon === "dagger" ? .48 : .94, .045, .65
+          );
+        } else if (card.weapon === "axe") {
+          cylinder(hand, "#765230", 0, -.32, .06, .055, 1.05);
+          box(hand, "#aebdcb", .16, .1, .06, .4, .35, .08, .6);
+        } else if (card.weapon === "staff") {
+          cylinder(hand, "#b59a63", 0, -.2, .06, .045, 1.6);
+          ball(hand, "#c9a1ff", 0, .65, .06, .16);
+        } else if (card.weapon === "bow") {
+          const curve = new THREE.EllipseCurve(
+            0, 0, .24, .46, -Math.PI / 2, Math.PI / 2, false, 0
+          );
+          const points = curve.getPoints(18).map(
+            p => new THREE.Vector3(p.x, p.y, 0)
+          );
+          const bow = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints(points),
+            new THREE.LineBasicMaterial({ color: "#dbb479" })
+          );
+          bow.position.set(.05, -.3, .1);
+          hand.add(bow);
+        }
+      }
+
+      if (["goku", "gohan"].includes(id)) {
+        cylinder(rig, "#fff4d2", 0, 1.16, .195, .09, .018)
+          .rotation.x = Math.PI / 2;
+        box(rig, "#243451", 0, 1.16, .21, .025, .11, .015);
+      }
+
+      if (!portrait) {
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(.37, .43, 24),
+          new THREE.MeshBasicMaterial({
+            color: friendly ? "#61d7ff" : "#ff7188",
+            transparent: true,
+            opacity: .85,
+            side: THREE.DoubleSide
+          })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = .09;
+        root.add(ring);
+        root.userData.ring = ring;
+      }
+
+      root.userData.rig = rig;
+      root.userData.arms = arms;
+      root.userData.legs = legs;
+      root.userData.height = card.height;
+      root.userData.phase = Math.random() * Math.PI * 2;
+
+      return root;
+    }
+
+    // -------------------- HEALTH BARS --------------------
+
+    function makeHealthBar(parent, y, width) {
+      const pivot = new THREE.Group();
+      pivot.position.y = y;
+      parent.add(pivot);
+
+      const background = new THREE.Mesh(
+        new THREE.PlaneGeometry(width, .105),
+        new THREE.MeshBasicMaterial({
+          color: "#15212c",
+          depthTest: false,
+          transparent: true
+        })
+      );
+
+      const fill = new THREE.Mesh(
+        new THREE.PlaneGeometry(width - .025, .075),
+        new THREE.MeshBasicMaterial({
+          color: "#91f7a3",
+          depthTest: false,
+          transparent: true
+        })
+      );
+
+      fill.position.z = .005;
+      background.renderOrder = 10;
+      fill.renderOrder = 11;
+      pivot.add(background, fill);
+
+      return { pivot, fill, width: width - .025 };
+    }
+
+    function setHealth(bar, hp, maxHp) {
+      const ratio = Math.max(0, Math.min(1, hp / maxHp));
+      bar.fill.scale.x = ratio;
+      bar.fill.position.x = -(1 - ratio) * bar.width / 2;
+      bar.fill.material.color.set(ratio > .4 ? "#91f7a3" : "#ffc775");
+    }
+
+    // -------------------- CASTLES --------------------
+
+    function makeTower(kind, friendly) {
+      const root = new THREE.Group();
+      const building = new THREE.Group();
+      root.add(building);
+
+      const king = kind === "king";
+      const size = king ? 1.15 : .88;
+      const color = friendly ? "#2f82ba" : "#bb4d61";
+      const roof = friendly ? "#327eb3" : "#a63e54";
+
+      cylinder(building, "#6f7d80", 0, .15, 0, size * 1.25, .3);
+      box(building, "#aab4ae", 0, .8, 0, size * 1.8, 1.45, size * 1.65);
+      box(building, color, 0, 1.56, 0, size * 1.95, .3, size * 1.8);
+
+      // Masonry seams.
+      for (let row = 0; row < 4; row++) {
+        const y = .35 + row * .3;
+        box(building, "#788887", 0, y, size * .831, size * 1.8, .025, .018);
+        for (let col = -1; col <= 1; col++) {
+          box(
+            building, "#788887",
+            col * size * .55 + (row % 2 ? .16 : 0),
+            y + .13, size * .835,
+            .021, .26, .018
+          );
+        }
+      }
+
+      // Four corner turrets.
+      for (const x of [-size * .75, size * .75]) {
+        for (const z of [-size * .66, size * .66]) {
+          cylinder(building, "#bec5b8", x, 1.35, z, size * .28, 1.5);
+          cone(building, roof, x, 2.3, z, size * .37, .8);
+          ball(building, "#ebcd7d", x, 2.73, z, .075);
+        }
+      }
+
+      // Front door and windows.
+      box(building, "#253843", 0, .57, size * .839, .43, .75, .035);
+      box(building, "#aa8551", 0, .54, size * .861, .3, .66, .025);
+
+      for (const x of [-.47, .47]) {
+        box(building, "#183845", x * size, 1.08, size * .842, .18, .31, .03);
+        box(building, "#efc76d", x * size, 1.08, size * .862, .075, .19, .015);
+      }
+
+      if (king) {
+        cylinder(building, "#bdc8bb", 0, 2.02, 0, .57, .87);
+        cylinder(building, "#e5be62", 0, 2.53, 0, .65, .18);
+
+        for (let i = 0; i < 6; i++) {
+          const angle = i / 6 * Math.PI * 2;
+          cone(
+            building, "#ffe098",
+            Math.cos(angle) * .5, 2.79, Math.sin(angle) * .5,
+            .115, .45
+          );
+        }
+      } else {
+        cylinder(building, "#455966", 0, 1.96, 0, .38, .55);
+        const cannon = cylinder(
+          building, "#293b4b", 0, 2.08, .35, .14, .72, .5
+        );
+        cannon.rotation.x = Math.PI / 2;
+      }
+
+      // Flag and banner.
+      cylinder(building, "#dacda8", size * .93, 2.65, 0, .035, 1.5);
+      box(building, color, size * .93 + .23, 3.17, 0, .45, .28, .04);
+      box(building, "#f0cc7a", 0, 1.45, size * .93, .34, .4, .045);
+
+      root.userData.building = building;
+      root.userData.health = makeHealthBar(root, king ? 3.35 : 2.9, 1.65);
+
+      scene.add(root);
+      return root;
+    }
+
+    // -------------------- DEPLOYMENT PREVIEW --------------------
+
+    const deployment = new THREE.Group();
+    scene.add(deployment);
+    deployment.visible = false;
+
+    const previewMat = new THREE.MeshBasicMaterial({
+      color: "#8deab1",
+      transparent: true,
+      opacity: .85,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+
+    const previewRing = new THREE.Mesh(
+      new THREE.RingGeometry(.48, .58, 48),
+      previewMat
+    );
+    previewRing.rotation.x = -Math.PI / 2;
+    previewRing.position.y = .13;
+    deployment.add(previewRing);
+
+    const previewPillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(.55, .55, 1.9, 32, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: "#77edb2",
+        transparent: true,
+        opacity: .09,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      })
+    );
+    previewPillar.position.y = 1;
+    deployment.add(previewPillar);
+
+    // -------------------- EFFECTS --------------------
+
+    const sparkGeo = new THREE.IcosahedronGeometry(.065, 0);
+    const sparkMaterials = {
+      blue: new THREE.MeshBasicMaterial({ color: "#7bdfff" }),
+      gold: new THREE.MeshBasicMaterial({ color: "#ffd377" }),
+      red: new THREE.MeshBasicMaterial({ color: "#ff7e8f" })
+    };
+
+    function burst(x, y, z, color = "gold", count = 10) {
+      for (let i = 0; i < count; i++) {
+        if (effects.length >= 220) break;
+
+        const mesh = new THREE.Mesh(sparkGeo, sparkMaterials[color]);
+        mesh.position.set(x, y, z);
+        scene.add(mesh);
+
+        effects.push({
+          mesh,
+          vx: (Math.random() - .5) * 4,
+          vy: 1 + Math.random() * 3,
+          vz: (Math.random() - .5) * 4,
+          life: .35 + Math.random() * .35,
+          maxLife: .7
+        });
+      }
+    }
+
+    // -------------------- CARD PORTRAITS --------------------
+
+    async function generatePortraits() {
+      const portraitScene = new THREE.Scene();
+      portraitScene.add(new THREE.HemisphereLight("#e7f6ff", "#778298", 3));
+
+      const key = new THREE.DirectionalLight("#ffe8c4", 4);
+      key.position.set(-3, 6, 5);
+      portraitScene.add(key);
+
+      const edge = new THREE.DirectionalLight("#8ebfff", 2);
+      edge.position.set(3, 3, -3);
+      portraitScene.add(edge);
+
+      const portraitCamera = new THREE.PerspectiveCamera(32, 1, .1, 20);
+      const capture = document.createElement("canvas");
+      capture.width = 192;
+      capture.height = 192;
+      const captureCtx = capture.getContext("2d");
+
+      renderer.setPixelRatio(1);
+      renderer.setSize(192, 192, false);
+      renderer.setClearColor("#000000", 0);
+
+      for (const [id, card] of Object.entries(CARDS)) {
+        const fighter = makeFighter(id, true, true);
+        fighter.rotation.y = -.3;
+        portraitScene.add(fighter);
+
+        const height = card.height;
+        portraitCamera.position.set(0, 1.6 * height, 4.5 * height);
+        portraitCamera.lookAt(0, 1.1 * height, 0);
+
+        renderer.render(portraitScene, portraitCamera);
+        captureCtx.clearRect(0, 0, 192, 192);
+        captureCtx.drawImage(canvas, 0, 0, 192, 192);
+        portraits[id] = capture.toDataURL("image/png");
+
+        portraitScene.remove(fighter);
+
+        // Let the browser update the loading screen between portraits.
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+
+      renderer.setClearColor("#0a1925", 1);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.7));
+    }
+
+    // -------------------- UI --------------------
+
+    function renderDeck() {
+      $("deck-builder").replaceChildren();
+
+      for (const [id, card] of Object.entries(CARDS)) {
+        const button = document.createElement("button");
+        button.className = "deck-card" + (deck.has(id) ? " selected" : "");
+        button.style.setProperty("--accent", card.accent + "88");
+        button.disabled = connecting;
+        button.setAttribute("aria-pressed", String(deck.has(id)));
+
+        button.innerHTML = `
+          <div class="portrait-wrap">
+            <img src="${portraits[id]}" alt="" draggable="false">
+            <span class="cost-badge">${card.cost}</span>
+            <span class="picked">✓</span>
+          </div>
+          <div class="card-info">
+            <span class="card-name">${card.name}</span>
+            <span class="card-role">${card.role}</span>
+          </div>
+        `;
+
+        button.addEventListener("click", () => {
+          if (connecting) return;
+
+          if (deck.has(id)) {
+            deck.delete(id);
+          } else if (deck.size < 8) {
+            deck.add(id);
+          } else {
+            $("search-status").textContent =
+              "Deselect a fighter before adding another.";
+          }
+
+          renderDeck();
+        });
+
+        $("deck-builder").append(button);
+      }
+
+      $("deck-count").textContent = `${deck.size} / 8 SELECTED`;
+    }
+
+    function buildHand(ids) {
+      $("hand").replaceChildren();
+      handButtons.clear();
+
+      for (const id of ids) {
+        const card = CARDS[id];
+        const button = document.createElement("button");
+
+        button.className = "hand-card";
+        button.style.setProperty("--accent", card.accent + "99");
+        button.setAttribute("aria-label", `${card.name}, ${card.cost} elixir`);
+
+        button.innerHTML = `
+          <img src="${portraits[id]}" alt="" draggable="false">
+          <span class="cost-badge">${card.cost}</span>
+          <span class="hand-name">${card.name}</span>
+        `;
+
+        button.addEventListener("pointerdown", event => {
+          if (over) return;
+          event.preventDefault();
+          selectedCard = id;
+          dragging = true;
+          previewPoint = null;
+        });
+
+        button.addEventListener("click", () => {
+          if (!over) selectedCard = id;
+        });
+
+        $("hand").append(button);
+        handButtons.set(id, button);
+      }
+    }
+
+    function updateStats(data) {
+      $("online-count").textContent = String(data.online_count);
+      $("leaderboard").replaceChildren();
+
+      const entries = data.leaderboard || [];
+
+      if (!entries.length) {
+        const li = document.createElement("li");
+        li.textContent = "No wins yet";
+        $("leaderboard").append(li);
+      }
+
+      for (const entry of entries) {
+        const li = document.createElement("li");
+        li.textContent = `${entry.username} — ${entry.wins} wins`;
+        $("leaderboard").append(li);
+      }
+    }
+
+    function notice(message) {
+      $("notice").textContent = message;
+      noticeUntil = performance.now() + 2600;
+    }
+
+    function resetSearch(message = "") {
+      connecting = false;
+      $("findButton").disabled = false;
+      $("findButton").textContent = "FIND MATCH!";
+      $("usernameInput").disabled = false;
+      $("cancelButton").hidden = true;
+      $("search-status").textContent = message;
+      renderDeck();
+    }
+
+    // -------------------- NETWORKING --------------------
+
+    function send(data) {
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(data));
+      }
+    }
+
+    async function pollStats() {
+      if (inMatch || ws?.readyState === WebSocket.OPEN) return;
+
+      try {
+        const response = await fetch("/stats", { cache: "no-store" });
+        if (response.ok) updateStats(await response.json());
+      } catch {}
+    }
+
+    $("findButton").addEventListener("click", () => {
+      // Read the input BEFORE changing any DOM elements.
+      const username = $("usernameInput").value.trim() || "Guest";
+
+      if (connecting || inMatch) return;
+
+      if (deck.size !== 8) {
+        $("search-status").textContent = "Choose exactly eight cards.";
+        return;
+      }
+
+      connecting = true;
+      $("findButton").disabled = true;
+      $("findButton").textContent = "SEARCHING...";
+      $("usernameInput").disabled = true;
+      $("cancelButton").hidden = false;
+      $("search-status").textContent = "Connecting to the arena...";
+      renderDeck();
+
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+      const url = new URL(`${protocol}//${location.host}/ws`);
+      url.searchParams.set("username", username);
+      url.searchParams.set("deck", [...deck].join(","));
+
+      let socket;
+
+      try {
+        socket = new WebSocket(url);
+      } catch {
+        resetSearch("Unable to connect. Please try again.");
+        return;
+      }
+
+      ws = socket;
+
+      socket.addEventListener("open", () => {
+        if (ws !== socket) return;
+        $("search-status").textContent = "SEARCHING... Waiting for a challenger.";
+      });
+
+      socket.addEventListener("message", event => {
+        if (ws !== socket) return;
+
+        try {
+          handleMessage(JSON.parse(event.data));
+        } catch (error) {
+          console.error("Server message error:", error);
+        }
+      });
+
+      socket.addEventListener("error", () => {
+        if (ws === socket && !inMatch) {
+          $("search-status").textContent = "Connection failed. Please retry.";
+        }
+      });
+
+      socket.addEventListener("close", () => {
+        if (ws !== socket) return;
+
+        ws = null;
+        connecting = false;
+
+        if (inMatch && !over) {
+          finish("defeat", "Connection lost. Your opponent wins by forfeit.", false);
+        } else if (!inMatch) {
+          resetSearch("Disconnected. Try finding a match again.");
+        }
+      });
+    });
+
+    $("cancelButton").addEventListener("click", () => {
+      const socket = ws;
+      ws = null;
+      socket?.close();
+      resetSearch("Search cancelled.");
+    });
+
+    $("playAgainButton").addEventListener("click", () => {
+      ws?.close();
+      location.reload();
+    });
+
+    function handleMessage(data) {
+      if (data.type === "server_stats") {
+        updateStats(data);
+        return;
+      }
+
+      if (data.type === "waiting") {
+        if (!inMatch) {
+          $("search-status").textContent =
+            `SEARCHING... Connected as ${data.username}.`;
+        }
+        return;
+      }
+
+      if (data.type === "init") {
+        startMatch(data);
+        return;
+      }
+
+      if (data.type === "error") {
+        notice(data.message);
+        return;
+      }
+
+      if (data.room_id !== roomId) return;
+
+      if (data.type === "state") {
+        applyState(data);
+      } else if (data.type === "deploy_ack") {
+        elixir = data.elixir;
+        spawnEvent(data, false);
+      } else if (data.type === "opponent_deploy") {
+        spawnEvent(data, true);
+      } else if (data.type === "opponent_disconnected") {
+        finish("victory", "Your opponent disconnected.");
+      } else if (data.type === "game_over") {
+        finish(
+          data.result,
+          data.reason === "time"
+            ? "Time expired. Remaining tower health decided the battle."
+            : data.reason === "disconnect"
+              ? "Your opponent left the arena."
+              : data.result === "draw"
+                ? "Both Kings fell together."
+                : "A King tower has fallen."
+        );
+      }
+    }
+
+    function startMatch(data) {
+      roomId = data.room_id;
+      side = data.player_index;
+      inMatch = true;
+      over = false;
+      connecting = false;
+      selectedCard = data.deck[0];
+      elixir = 5;
+      remaining = 180;
+
+      $("start-screen").hidden = true;
+
+      // Explicitly hide stats so nothing covers the board.
+      $("stats-container").hidden = true;
+      $("stats-container").style.display = "none";
+
+      $("game").hidden = false;
+      $("result-screen").hidden = true;
+      $("opponent-name").textContent = `🔴 ${data.opponent}`;
+      $("player-name").textContent = `${data.username} 🔵`;
+
+      buildHand(data.deck);
+      resize();
+    }
+
+    function addUnit(data, point, friendly) {
+      const model = makeFighter(data.card, friendly);
+      const p = worldPoint(point.x, point.y);
+
+      model.position.set(p.x, .13, p.z);
+      model.rotation.y = friendly ? Math.PI : 0;
+      scene.add(model);
+
+      const bar = makeHealthBar(
+        model,
+        CARDS[data.card].height * 2.55,
+        .72
+      );
+
+      const unit = {
+        id: data.id,
+        card: data.card,
+        friendly,
+        model,
+        bar,
+        tx: p.x,
+        tz: p.z,
+        hp: data.hp,
+        maxHp: data.max_hp,
+        hurt: 0
+      };
+
+      units.set(data.id, unit);
+      setHealth(bar, unit.hp, unit.maxHp);
+
+      burst(
+        p.x, .45, p.z,
+        friendly ? "blue" : "red",
+        12
+      );
+
+      return unit;
+    }
+
+    function spawnEvent(data, enemy) {
+      if (over || units.has(data.id)) return;
+
+      // Opponent coordinates are mirrored into the local viewpoint.
+      const point = enemy
+        ? { x: W - data.x, y: H - data.y }
+        : { x: data.x, y: data.y };
+
+      addUnit(data, point, !enemy);
+    }
+
+    function removeUnit(unit) {
+      burst(
+        unit.model.position.x,
+        1,
+        unit.model.position.z,
+        unit.friendly ? "blue" : "red",
+        14
+      );
+
+      scene.remove(unit.model);
+
+      // Per-instance geometry/materials; shared body meshes remain cached.
+      const ring = unit.model.userData.ring;
+      ring.geometry.dispose();
+      ring.material.dispose();
+
+      for (const child of unit.bar.pivot.children) {
+        child.geometry.dispose();
+        child.material.dispose();
+      }
+
+      unit.model.traverse(object => {
+        if (object.isLine) {
+          object.geometry.dispose();
+          object.material.dispose();
+        }
+      });
+
+      units.delete(unit.id);
+    }
+
+    function applyState(data) {
+      elixir = data.elixir;
+      remaining = data.remaining;
+
+      for (const state of data.towers) {
+        let tower = towerModels.get(state.id);
+        const p = localPoint(state.x, state.y);
+        const world = worldPoint(p.x, p.y);
+        const friendly = state.owner === side;
+
+        if (!tower) {
+          tower = makeTower(state.kind, friendly);
+          tower.position.set(world.x, .04, world.z);
+
+          // Front faces toward the middle of the battlefield.
+          tower.rotation.y = friendly ? Math.PI : 0;
+          tower.userData.hp = state.hp;
+          towerModels.set(state.id, tower);
+        }
+
+        if (state.hp < tower.userData.hp) {
+          burst(world.x, 1.5, world.z, "gold", 8);
+        }
+
+        if (state.hp <= 0 && tower.userData.hp > 0) {
+          burst(world.x, 1.3, world.z, "gold", 35);
+          tower.userData.building.scale.y = .16;
+          tower.userData.building.rotation.z = .12;
+        }
+
+        tower.userData.hp = state.hp;
+        tower.userData.health.pivot.visible = state.hp > 0;
+        setHealth(tower.userData.health, state.hp, state.max_hp);
+      }
+
+      const liveIds = new Set();
+
+      for (const state of data.units) {
+        liveIds.add(state.id);
+        const p = localPoint(state.x, state.y);
+        const world = worldPoint(p.x, p.y);
+        let unit = units.get(state.id);
+
+        if (!unit) {
+          unit = addUnit(state, p, state.owner === side);
+        }
+
+        if (state.hp < unit.hp) {
+          unit.hurt = .24;
+          burst(
+            unit.model.position.x,
+            1.15 * CARDS[unit.card].height,
+            unit.model.position.z,
+            "gold",
+            7
+          );
+        }
+
+        unit.tx = world.x;
+        unit.tz = world.z;
+        unit.hp = state.hp;
+        unit.maxHp = state.max_hp;
+        setHealth(unit.bar, unit.hp, unit.maxHp);
+      }
+
+      for (const unit of [...units.values()]) {
+        if (!liveIds.has(unit.id)) removeUnit(unit);
+      }
+
+      const ownKing = data.towers.find(
+        t => t.kind === "king" && t.owner === side
+      );
+      const enemyKing = data.towers.find(
+        t => t.kind === "king" && t.owner !== side
+      );
+
+      if (!over && ownKing && enemyKing) {
+        if (ownKing.hp <= 0 && enemyKing.hp <= 0) {
+          finish("draw", "Both Kings fell together.");
+        } else if (enemyKing.hp <= 0) {
+          finish("victory", "You destroyed the enemy King!");
+        } else if (ownKing.hp <= 0) {
+          finish("defeat", "Your King has fallen.");
+        }
+      }
+    }
+
+    function finish(result, detail, report = true) {
+      if (over) return;
+
+      over = true;
+      dragging = false;
+      previewPoint = null;
+      deployment.visible = false;
+
+      $("result-title").textContent = result.toUpperCase();
+      $("result-title").style.color =
+        result === "victory" ? "#ffd477"
+        : result === "defeat" ? "#ff899a"
+        : "#9cdbff";
+
+      $("result-detail").textContent = detail;
+      $("result-screen").hidden = false;
+
+      if (report) {
+        send({
+          type: "game_over",
+          room_id: roomId,
+          result
+        });
+      }
+    }
+
+    // -------------------- 3D POINTER INPUT --------------------
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const hit = new THREE.Vector3();
+
+    function insideCanvas(event) {
+      const rect = canvas.getBoundingClientRect();
+      return event.clientX >= rect.left
+        && event.clientX <= rect.right
+        && event.clientY >= rect.top
+        && event.clientY <= rect.bottom;
+    }
+
+    function canvasPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+
+      pointer.set(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+
+      raycaster.setFromCamera(pointer, camera);
+
+      if (!raycaster.ray.intersectPlane(groundPlane, hit)) return null;
+
+      return {
+        x: hit.x * SCALE + W / 2,
+        y: hit.z * SCALE + H / 2
+      };
+    }
+
+    function validDeployment(point) {
+      return point
+        && point.x >= 24
+        && point.x <= W - 24
+        && point.y >= 400
+        && point.y <= H - 24;
+    }
+
+    function deployAt(point) {
+      if (!inMatch || over || !selectedCard || !point) return;
+
+      if (!validDeployment(point)) {
+        notice("Deploy on your half of the arena, below the river.");
+        return;
+      }
+
+      if (elixir < CARDS[selectedCard].cost) {
+        notice("Not enough elixir. Give it a moment.");
+        return;
+      }
+
+      send({
+        type: "deploy",
+        room_id: roomId,
+        card: selectedCard,
+        x: point.x,
+        y: point.y
+      });
+    }
+
+    canvas.addEventListener("pointerup", event => {
+      if (!dragging) deployAt(canvasPoint(event));
+    });
+
+    document.addEventListener("pointermove", event => {
+      if (!inMatch || over) return;
+      previewPoint = insideCanvas(event) ? canvasPoint(event) : null;
+    });
+
+    document.addEventListener("pointerup", event => {
+      if (!dragging) return;
+
+      if (insideCanvas(event)) {
+        deployAt(canvasPoint(event));
+      }
+
+      dragging = false;
+      previewPoint = null;
+    });
+
+    document.addEventListener("pointercancel", () => {
+      dragging = false;
+      previewPoint = null;
+    });
+
+    window.addEventListener("keydown", event => {
+      if (!inMatch || over || event.repeat) return;
+
+      const index = Number(event.key) - 1;
+      const ids = [...handButtons.keys()];
+
+      if (index >= 0 && index < ids.length) {
+        selectedCard = ids[index];
+      }
+    });
+
+    // -------------------- CAMERA / LOOP --------------------
+
+    function resize() {
+      const rect = $("viewport").getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      renderer.setSize(rect.width, rect.height, false);
+      camera.aspect = rect.width / rect.height;
+
+      // Fit the complete board at both desktop and phone aspect ratios.
+      const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+      const horizontalFov =
+        2 * Math.atan(Math.tan(verticalFov / 2) * camera.aspect);
+
+      const distance = Math.max(
+        48,
+        17 / Math.tan(horizontalFov / 2),
+        21 / Math.tan(verticalFov / 2)
+      );
+
+      camera.position.set(0, distance * .79, distance * .62);
+      camera.lookAt(0, 0, 0);
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld();
+    }
+
+    new ResizeObserver(resize).observe($("viewport"));
+    window.addEventListener("resize", resize);
+
+    const worldQuaternion = new THREE.Quaternion();
+
+    function faceCamera(bar) {
+      // Correct for the rotation of the character/tower parent.
+      bar.pivot.parent.getWorldQuaternion(worldQuaternion);
+      bar.pivot.quaternion.copy(worldQuaternion.invert())
+        .multiply(camera.quaternion);
+    }
+
+    let lastFrame = performance.now();
+
+    function frame(now) {
+      const dt = Math.min((now - lastFrame) / 1000, .05);
+      lastFrame = now;
+      const time = now / 1000;
+
+      if (inMatch) {
+        for (const line of waterLines) {
+          line.position.x += dt * .25;
+          if (line.position.x > 12) line.position.x = -12;
+          line.position.y =
+            .065 + Math.sin(time * 2 + line.userData.phase) * .015;
+        }
+
+        for (const unit of units.values()) {
+          const model = unit.model;
+          const dx = unit.tx - model.position.x;
+          const dz = unit.tz - model.position.z;
+          const moving = Math.hypot(dx, dz) > .025;
+
+          const blend = 1 - Math.exp(-18 * dt);
+          model.position.x += dx * blend;
+          model.position.z += dz * blend;
+
+          if (moving) {
+            const targetAngle = Math.atan2(dx, dz);
+            const delta = Math.atan2(
+              Math.sin(targetAngle - model.rotation.y),
+              Math.cos(targetAngle - model.rotation.y)
+            );
+            model.rotation.y += delta * Math.min(1, dt * 14);
+          }
+
+          const rig = model.userData.rig;
+          const phase = time * 10 + model.userData.phase;
+          const walk = moving ? Math.sin(phase) * .6 : Math.sin(time * 2) * .025;
+
+          model.userData.legs[0].rotation.x = walk;
+          model.userData.legs[1].rotation.x = -walk;
+          model.userData.arms[0].rotation.x = -walk * .75;
+          model.userData.arms[1].rotation.x = walk * .75;
+
+          rig.position.y = moving ? Math.abs(Math.sin(phase)) * .055 : 0;
+          unit.hurt = Math.max(0, unit.hurt - dt);
+          rig.rotation.z = unit.hurt > 0 ? Math.sin(time * 60) * .06 : 0;
+
+          faceCamera(unit.bar);
+        }
+
+        for (const tower of towerModels.values()) {
+          faceCamera(tower.userData.health);
+        }
+
+        for (let i = effects.length - 1; i >= 0; i--) {
+          const effect = effects[i];
+          effect.life -= dt;
+
+          if (effect.life <= 0) {
+            scene.remove(effect.mesh);
+            effects.splice(i, 1);
+            continue;
+          }
+
+          effect.vy -= dt * 7;
+          effect.mesh.position.x += effect.vx * dt;
+          effect.mesh.position.y += effect.vy * dt;
+          effect.mesh.position.z += effect.vz * dt;
+          effect.mesh.rotation.x += dt * 7;
+          effect.mesh.rotation.z += dt * 5;
+          effect.mesh.scale.setScalar(Math.max(.1, effect.life / effect.maxLife));
+        }
+
+        deployment.visible = Boolean(previewPoint && !over && selectedCard);
+
+        if (deployment.visible) {
+          const p = worldPoint(previewPoint.x, previewPoint.y);
+          deployment.position.set(p.x, .02, p.z);
+
+          const valid = validDeployment(previewPoint)
+            && elixir >= CARDS[selectedCard].cost;
+
+          previewMat.color.set(valid ? "#9effb1" : "#ff7088");
+          previewPillar.material.color.copy(previewMat.color);
+          const pulse = 1 + Math.sin(time * 6) * .04;
+          deployment.scale.set(pulse, 1, pulse);
+        }
+
+        $("elixir-fill").style.width = `${elixir * 10}%`;
+        $("elixir-value").textContent = `${Math.floor(elixir)} / 10`;
+
+        const seconds = Math.ceil(remaining);
+        $("timer").textContent =
+          `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+
+        for (const [id, button] of handButtons) {
+          button.classList.toggle("selected", id === selectedCard);
+          button.classList.toggle("poor", elixir < CARDS[id].cost);
+        }
+
+        if (now > noticeUntil) {
+          $("notice").textContent =
+            "Select a fighter and tap your side • Drag to deploy • Keys 1–8 select cards";
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    await generatePortraits();
+
+    renderDeck();
+    $("loading").hidden = true;
+
+    pollStats();
+    setInterval(pollStats, 5000);
+    setInterval(() => send({ type: "ping" }), 20000);
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
