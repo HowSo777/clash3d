@@ -1,6 +1,7 @@
 import asyncio
 import json
 import math
+import random
 import re
 import time
 import uuid
@@ -28,12 +29,14 @@ RIVER_BOTTOM = 380
 BRIDGES = (130, 350)
 
 MATCH_SECONDS = 180
+SUDDEN_DEATH_SECONDS = 60
 TICK_SECONDS = 1 / 20
 
 DECK_SIZE = 8
 MAX_ELIXIR = 10.0
 STARTING_ELIXIR = 5.0
 ELIXIR_PER_SECOND = 1.0
+SUDDEN_DEATH_ELIXIR_PER_SECOND = 2.0
 
 MAX_UNITS_PER_PLAYER = 40
 MAX_MESSAGE_SIZE = 4096
@@ -176,9 +179,9 @@ DEFAULT_DECK = (
 # DATA MODELS
 # ============================================================
 
-@dataclass(eq=False)
+@dataclass
 class Player:
-    ws: WebSocket
+    ws: WebSocket | None
     username: str
     deck: tuple[str, ...]
 
@@ -204,6 +207,12 @@ class Room:
     started_at: float = field(default_factory=time.monotonic)
     ended: bool = False
 
+    is_sudden_death: bool = False
+    sudden_death_started_at: float | None = None
+    towers_at_sd_start: set[str] = field(default_factory=set)
+    sudden_death_announced: bool = False
+    mode: str = "standard"
+
 
 # ============================================================
 # GLOBAL STATE
@@ -215,7 +224,10 @@ active_connections: dict[WebSocket, Player] = {}
 online_players: list[str] = []
 leaderboard: dict[str, int] = {}
 
-waiting_player: Player | None = None
+waiting_players: dict[str, Player | None] = {
+    "standard": None,
+    "sudden_death": None,
+}
 
 rooms: dict[str, Room] = {}
 room_tasks: set[asyncio.Task] = set()
@@ -288,6 +300,9 @@ async def stats():
 # ============================================================
 
 async def send(player: Player, payload: dict):
+    if player.ws is None:
+        return
+
     try:
         async with player.send_lock:
             await asyncio.wait_for(
@@ -461,10 +476,15 @@ def move_toward(unit: dict, target: dict, speed: float, dt: float):
 # ============================================================
 
 def simulate(room: Room, dt: float):
+    elixir_rate = (
+        SUDDEN_DEATH_ELIXIR_PER_SECOND
+        if room.is_sudden_death
+        else ELIXIR_PER_SECOND
+    )
     for side in (0, 1):
         room.elixir[side] = min(
             MAX_ELIXIR,
-            room.elixir[side] + ELIXIR_PER_SECOND * dt,
+            room.elixir[side] + elixir_rate * dt,
         )
 
     units = list(room.units.values())
@@ -603,26 +623,78 @@ def outcome(room: Room):
     if side_1_dead:
         return 0
 
-    elapsed = time.monotonic() - room.started_at
+    now = time.monotonic()
+
+    # Sudden death active: First tower down wins immediately!
+    if room.is_sudden_death:
+        dead_since_sd = [
+            t for t in room.towers
+            if t["hp"] <= 0 and t["id"] in room.towers_at_sd_start
+        ]
+        if dead_since_sd:
+            dead_owners = {t["owner"] for t in dead_since_sd}
+            if 0 in dead_owners and 1 in dead_owners:
+                return -1
+            if 0 in dead_owners:
+                return 1
+            if 1 in dead_owners:
+                return 0
+
+        # Sudden death timer expired: Tiebreaker
+        sd_elapsed = now - (room.sudden_death_started_at or now)
+        if sd_elapsed >= SUDDEN_DEATH_SECONDS:
+            # Lowest tower health tiebreaker
+            min_hp_0 = min((t["hp"] for t in room.towers if t["owner"] == 0), default=0)
+            min_hp_1 = min((t["hp"] for t in room.towers if t["owner"] == 1), default=0)
+            if min_hp_0 != min_hp_1:
+                return 0 if min_hp_0 > min_hp_1 else 1
+
+            total_health = [
+                sum(
+                    tower["hp"]
+                    for tower in room.towers
+                    if tower["owner"] == side
+                )
+                for side in (0, 1)
+            ]
+
+            if total_health[0] == total_health[1]:
+                return -1
+
+            return (
+                0
+                if total_health[0] > total_health[1]
+                else 1
+            )
+
+        return None
+
+    # Normal regulation time check
+    elapsed = now - room.started_at
 
     if elapsed >= MATCH_SECONDS:
-        total_health = [
-            sum(
-                tower["hp"]
-                for tower in room.towers
-                if tower["owner"] == side
-            )
-            for side in (0, 1)
-        ]
-
-        if total_health[0] == total_health[1]:
-            return -1
-
-        return (
-            0
-            if total_health[0] > total_health[1]
-            else 1
+        side_0_lost = sum(
+            1 for t in room.towers
+            if t["owner"] == 0 and t["hp"] <= 0
         )
+        side_1_lost = sum(
+            1 for t in room.towers
+            if t["owner"] == 1 and t["hp"] <= 0
+        )
+
+        if side_0_lost < side_1_lost:
+            return 0
+        elif side_1_lost < side_0_lost:
+            return 1
+        else:
+            # Tower destructions are tied -> Enter SUDDEN DEATH!
+            room.is_sudden_death = True
+            room.sudden_death_started_at = now
+            room.towers_at_sd_start = {
+                t["id"] for t in room.towers if t["hp"] > 0
+            }
+            room.sudden_death_announced = False
+            return None
 
     return None
 
@@ -655,16 +727,28 @@ async def send_snapshot(room: Room):
         for tower in room.towers
     ]
 
+    if room.is_sudden_death:
+        sd_elapsed = time.monotonic() - (
+            room.sudden_death_started_at or room.started_at
+        )
+        remaining = max(0, SUDDEN_DEATH_SECONDS - sd_elapsed)
+    else:
+        remaining = max(
+            0,
+            MATCH_SECONDS - (time.monotonic() - room.started_at),
+        )
+
     common = {
         "type": "state",
         "room_id": room.id,
         "units": units,
         "towers": towers,
-        "remaining": max(
-            0,
-            MATCH_SECONDS - (
-                time.monotonic() - room.started_at
-            ),
+        "remaining": remaining,
+        "sudden_death": room.is_sudden_death,
+        "elixir_rate": (
+            SUDDEN_DEATH_ELIXIR_PER_SECOND
+            if room.is_sudden_death
+            else ELIXIR_PER_SECOND
         ),
     }
 
@@ -761,6 +845,7 @@ async def room_loop(room: Room):
                     "deck": list(player.deck),
                     "width": WIDTH,
                     "height": HEIGHT,
+                    "sudden_death": room.is_sudden_death,
                 },
             )
             for side, player in enumerate(room.players)
@@ -771,8 +856,14 @@ async def room_loop(room: Room):
         return
 
     room.started_at = time.monotonic()
+    if room.is_sudden_death:
+        room.sudden_death_started_at = room.started_at
+        room.towers_at_sd_start = {t["id"] for t in room.towers if t["hp"] > 0}
+        room.sudden_death_announced = True
+
     previous = room.started_at
     tick = 0
+    bot_timer = 0.0
 
     await send_snapshot(room)
 
@@ -781,7 +872,47 @@ async def room_loop(room: Room):
         dt = min(now - previous, 0.1)
         previous = now
 
+        # Automated Trainer Bot logic for solo practice
+        for bot_player in room.players:
+            if bot_player.ws is None:
+                bot_timer += dt
+                if bot_timer >= 2.6:
+                    bot_timer = 0.0
+                    bot_side = bot_player.side
+                    current_elixir = room.elixir[bot_side]
+                    affordable = [
+                        c for c in bot_player.deck
+                        if CARDS[c]["cost"] <= current_elixir
+                    ]
+                    if affordable:
+                        chosen_card = random.choice(affordable)
+                        deploy_x = random.uniform(80, WIDTH - 80)
+                        deploy_y = random.uniform(430, HEIGHT - 60)
+                        await deploy(bot_player, {
+                            "card": chosen_card,
+                            "x": deploy_x,
+                            "y": deploy_y,
+                        })
+
         simulate(room, dt)
+
+        # Notify clients if Sudden Death was triggered mid-match
+        if room.is_sudden_death and not room.sudden_death_announced:
+            room.sudden_death_announced = True
+            await asyncio.gather(
+                *(
+                    send(
+                        player,
+                        {
+                            "type": "sudden_death",
+                            "room_id": room.id,
+                            "duration": SUDDEN_DEATH_SECONDS,
+                            "elixir_rate": SUDDEN_DEATH_ELIXIR_PER_SECOND,
+                        },
+                    )
+                    for player in room.players
+                )
+            )
 
         result = outcome(room)
 
@@ -792,11 +923,18 @@ async def room_loop(room: Room):
                 for tower in room.towers
             )
 
-            reason = (
-                "king_destroyed"
-                if kings_destroyed
-                else "time"
-            )
+            if kings_destroyed:
+                reason = "king_destroyed"
+            elif room.is_sudden_death:
+                sd_elapsed = time.monotonic() - (
+                    room.sudden_death_started_at or time.monotonic()
+                )
+                if sd_elapsed >= SUDDEN_DEATH_SECONDS:
+                    reason = "tiebreaker"
+                else:
+                    reason = "sudden_death_tower"
+            else:
+                reason = "time"
 
             await finish_room(room, result, reason)
             return
@@ -955,16 +1093,12 @@ async def deploy(player: Player, data: dict):
 # ============================================================
 
 async def disconnect(player: Player):
-    global waiting_player
+    for mode_key in waiting_players:
+        if waiting_players[mode_key] is player:
+            waiting_players[mode_key] = None
 
     if active_connections.pop(player.ws, None) is None:
         return
-
-    with suppress(ValueError):
-        online_players.remove(player.username)
-
-    if waiting_player is player:
-        waiting_player = None
 
     room = rooms.get(player.room_id)
 
@@ -987,9 +1121,9 @@ async def websocket_endpoint(
     websocket: WebSocket,
     username: str = "Guest",
     deck: str = ",".join(DEFAULT_DECK),
+    mode: str = "standard",
+    vs_bot: bool = False,
 ):
-    global waiting_player
-
     await websocket.accept()
 
     selected_deck = tuple(deck.split(","))
@@ -1011,24 +1145,44 @@ async def websocket_endpoint(
         deck=selected_deck,
     )
 
-    # Registration and pairing contain no awaits.
-    # They are atomic within this single-process asyncio app.
     active_connections[websocket] = player
     online_players.append(player.username)
 
-    if waiting_player is None:
-        waiting_player = player
-        new_room = None
-
-    else:
-        opponent = waiting_player
-        waiting_player = None
-
-        new_room = create_room(opponent, player)
+    if vs_bot:
+        bot_deck = tuple(random.sample(list(CARDS.keys()), DECK_SIZE))
+        bot = Player(
+            ws=None,
+            username="Trainer Bot",
+            deck=bot_deck,
+        )
+        new_room = create_room(player, bot)
+        if mode == "sudden_death":
+            new_room.is_sudden_death = True
+            new_room.mode = "sudden_death"
 
         task = asyncio.create_task(room_loop(new_room))
         room_tasks.add(task)
         task.add_done_callback(room_tasks.discard)
+
+    else:
+        norm_mode = "sudden_death" if mode == "sudden_death" else "standard"
+        waiting = waiting_players.get(norm_mode)
+
+        if waiting is None:
+            waiting_players[norm_mode] = player
+            new_room = None
+        else:
+            opponent = waiting
+            waiting_players[norm_mode] = None
+
+            new_room = create_room(opponent, player)
+            if norm_mode == "sudden_death":
+                new_room.is_sudden_death = True
+                new_room.mode = "sudden_death"
+
+            task = asyncio.create_task(room_loop(new_room))
+            room_tasks.add(task)
+            task.add_done_callback(room_tasks.discard)
 
     recent_messages = deque()
 

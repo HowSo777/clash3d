@@ -448,6 +448,224 @@
       transition: width .12s linear;
     }
 
+    /* Camera Preset Switcher */
+    .cam-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #192c42b0;
+      border: 1px solid #456b8c;
+      color: #bfe0ff;
+      padding: 6px 13px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      transition: all .2s ease;
+      cursor: pointer;
+      user-select: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .cam-btn:hover {
+      background: #23476cb0;
+      border-color: var(--blue);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 0 14px rgba(89, 200, 255, 0.35);
+    }
+
+    .cam-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Sudden Death Timer & UI */
+    #timer.sudden-death {
+      color: #ff4d6d;
+      text-shadow: 0 0 16px rgba(255, 77, 109, 0.8), 0 0 28px rgba(255, 77, 109, 0.4);
+      animation: timerPulse 0.8s infinite alternate ease-in-out;
+    }
+
+    @keyframes timerPulse {
+      0% { transform: scale(1); filter: brightness(1); }
+      100% { transform: scale(1.08); filter: brightness(1.25); }
+    }
+
+    .sd-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #ff4757, #ff6b81);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 12px;
+      letter-spacing: 1.5px;
+      box-shadow: 0 0 12px rgba(255, 71, 87, 0.6);
+      animation: sdBadgeGlow 1.2s infinite alternate;
+    }
+
+    @keyframes sdBadgeGlow {
+      0% { opacity: 0.85; box-shadow: 0 0 6px #ff4757; }
+      100% { opacity: 1; box-shadow: 0 0 16px #ff4757; }
+    }
+
+    /* 2X Elixir Badge & Styling */
+    .elixir-2x-badge {
+      display: none;
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a0b2e;
+      font-weight: 900;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      letter-spacing: 1px;
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.7);
+      animation: elixirPulse 0.7s infinite alternate;
+    }
+
+    .elixir-2x-active .elixir-2x-badge {
+      display: inline-block;
+    }
+
+    .elixir-2x-active #elixir-fill {
+      background: linear-gradient(90deg, #ff4757, #ffd700, #ff8c00);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.85);
+    }
+
+    @keyframes elixirPulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08); box-shadow: 0 0 18px rgba(255, 215, 0, 0.95); }
+    }
+
+    /* Sudden Death Overlay Banner */
+    .sudden-death-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, rgba(255, 40, 60, 0.3) 0%, rgba(10, 5, 20, 0.65) 80%);
+      animation: sdOverlayFade 2.7s forwards cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sd-banner-card {
+      text-align: center;
+      padding: 26px 44px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(38, 14, 48, 0.96), rgba(16, 8, 26, 0.98));
+      border: 2px solid #ff4757;
+      box-shadow: 0 0 65px rgba(255, 71, 87, 0.75), inset 0 0 25px rgba(255, 71, 87, 0.35);
+      animation: sdPopIn 2.7s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .sd-tag {
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffd477;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .sd-title {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(48px, 9vw, 84px);
+      font-weight: 800;
+      margin: 0;
+      line-height: 0.92;
+      letter-spacing: 3px;
+      background: linear-gradient(180deg, #ffffff 10%, #ffd477 45%, #ff4757 95%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 6px 14px rgba(255, 71, 87, 0.65));
+    }
+
+    .sd-rule {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fce4ec;
+      letter-spacing: 2px;
+      margin-top: 10px;
+      text-transform: uppercase;
+    }
+
+    .sd-boost {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      background: linear-gradient(90deg, #ffd700, #ff8c00);
+      color: #1a0826;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 2px;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+    }
+
+    @keyframes sdOverlayFade {
+      0% { opacity: 0; }
+      14% { opacity: 1; }
+      82% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+
+    @keyframes sdPopIn {
+      0% { transform: scale(0.55); opacity: 0; }
+      18% { transform: scale(1.05); opacity: 1; }
+      24% { transform: scale(1.0); }
+      84% { transform: scale(1.0); opacity: 1; }
+      100% { transform: scale(1.15); opacity: 0; }
+    }
+
+    /* Lobby Mode Selector & Solo Practice */
+    .mode-select-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border-radius: 12px;
+      border: 1px solid #36506d;
+      background: #111d2e;
+      color: #a2bdd8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .mode-btn:hover {
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .mode-btn.active {
+      background: #19385c;
+      border-color: var(--blue);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(89, 200, 255, 0.3);
+    }
+
+    .bot-button {
+      background: linear-gradient(135deg, #1b3848, #2a556d);
+      border-color: #4a86a8;
+      color: #d8f3ff;
+      margin-top: 8px;
+    }
+
+    .bot-button:hover {
+      background: linear-gradient(135deg, #22475c, #366d8c);
+      box-shadow: 0 0 18px rgba(89, 200, 255, 0.4);
+    }
+
     #hand {
       display: grid;
       grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -696,7 +914,14 @@
             autocomplete="nickname"
           >
 
+          <label style="margin-top: 14px; display: block;">Match Rules</label>
+          <div class="mode-select-row">
+            <button type="button" id="modeStandardBtn" class="mode-btn active">⚔️ STANDARD</button>
+            <button type="button" id="modeSuddenDeathBtn" class="mode-btn">⚡ SUDDEN DEATH</button>
+          </div>
+
           <button id="findButton" class="primary">FIND MATCH!</button>
+          <button id="practiceButton" class="primary bot-button">🤖 PRACTICE VS BOT</button>
           <button id="cancelButton" class="secondary" hidden>
             CANCEL SEARCH
           </button>
@@ -707,8 +932,9 @@
             <strong>HOW TO PLAY</strong><br>
             Select a fighter and tap your half of the arena,
             or drag the card onto the battlefield.<br><br>
-            Elixir regenerates automatically. Destroy the enemy King
-            before yours falls.
+            • Standard: 3 mins. If tied at overtime, Sudden Death triggers!<br>
+            • Sudden Death: 2X Elixir. First tower destroyed wins instantly!<br>
+            • Press <strong>C</strong> in battle to switch Camera Angles.
           </div>
 
           <div id="stats-container">
@@ -723,20 +949,42 @@
 
   <main id="game" hidden>
     <header class="battle-header">
-      <span id="opponent-name" class="commander enemy">ENEMY</span>
-      <span id="timer">3:00</span>
-      <span id="player-name" class="commander friendly">YOU</span>
+      <div style="display:flex; align-items:center; gap:10px; max-width:32%;">
+        <span id="opponent-name" class="commander enemy">ENEMY</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="timer">3:00</span>
+        <span id="sd-badge" class="sd-indicator" hidden>⚡ SUDDEN DEATH</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; max-width:38%; justify-content:flex-end;">
+        <button id="cam-toggle-btn" class="cam-btn" title="Toggle Camera Angle (or press C)">
+          <span class="cam-icon">🎥</span>
+          <span id="cam-name">TACTICAL</span>
+        </button>
+        <span id="player-name" class="commander friendly">YOU</span>
+      </div>
     </header>
 
     <div id="viewport">
       <canvas id="arena" aria-label="3D multiplayer battle arena"></canvas>
       <div id="notice">Select a fighter. Deploy below the river.</div>
+
+      <!-- Sudden Death Dramatic Overlay Banner -->
+      <div id="sudden-death-overlay" class="sudden-death-overlay" hidden>
+        <div class="sd-banner-card">
+          <div class="sd-tag">⚡ OVERTIME BATTLE ⚡</div>
+          <h2 class="sd-title">SUDDEN DEATH</h2>
+          <div class="sd-rule">FIRST TOWER DESTROYED WINS!</div>
+          <div class="sd-boost">⚡ 2X ELIXIR BOOST ACTIVE ⚡</div>
+        </div>
+      </div>
     </div>
 
     <footer class="battle-footer">
       <div class="footer-inner">
-        <div class="elixir-row">
+        <div class="elixir-row" id="elixir-row">
           <span style="color:#dfafff">◆ ELIXIR</span>
+          <span id="elixir-2x" class="elixir-2x-badge">⚡ 2X ELIXIR</span>
           <div class="elixir-track"><div id="elixir-fill"></div></div>
           <span id="elixir-value">5 / 10</span>
         </div>
@@ -878,6 +1126,10 @@
     let dragging = false;
     let previewPoint = null;
     let noticeUntil = 0;
+
+    let isSuddenDeath = false;
+    let selectedMode = "standard";
+    const towersAliveAtSd = new Set();
 
     const units = new Map();
     const towerModels = new Map();
@@ -1742,6 +1994,10 @@
       connecting = false;
       $("findButton").disabled = false;
       $("findButton").textContent = "FIND MATCH!";
+      if ($("practiceButton")) {
+        $("practiceButton").disabled = false;
+        $("practiceButton").textContent = "🤖 PRACTICE VS BOT";
+      }
       $("usernameInput").disabled = false;
       $("cancelButton").hidden = true;
       $("search-status").textContent = message;
@@ -1765,8 +2021,7 @@
       } catch {}
     }
 
-    $("findButton").addEventListener("click", () => {
-      // Read the input BEFORE changing any DOM elements.
+    function startConnect(vsBot = false) {
       const username = $("usernameInput").value.trim() || "Guest";
 
       if (connecting || inMatch) return;
@@ -1778,16 +2033,30 @@
 
       connecting = true;
       $("findButton").disabled = true;
-      $("findButton").textContent = "SEARCHING...";
+      if ($("practiceButton")) $("practiceButton").disabled = true;
+
+      if (vsBot) {
+        $("practiceButton").textContent = "STARTING PRACTICE...";
+        $("search-status").textContent = "Setting up practice arena with Trainer Bot...";
+      } else {
+        $("findButton").textContent = "SEARCHING...";
+        $("search-status").textContent = selectedMode === "sudden_death"
+          ? "Searching for a Sudden Death challenger..."
+          : "Connecting to the arena...";
+      }
+
       $("usernameInput").disabled = true;
       $("cancelButton").hidden = false;
-      $("search-status").textContent = "Connecting to the arena...";
       renderDeck();
 
       const protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const url = new URL(`${protocol}//${location.host}/ws`);
       url.searchParams.set("username", username);
       url.searchParams.set("deck", [...deck].join(","));
+      url.searchParams.set("mode", selectedMode);
+      if (vsBot) {
+        url.searchParams.set("vs_bot", "true");
+      }
 
       let socket;
 
@@ -1802,7 +2071,9 @@
 
       socket.addEventListener("open", () => {
         if (ws !== socket) return;
-        $("search-status").textContent = "SEARCHING... Waiting for a challenger.";
+        if (!vsBot) {
+          $("search-status").textContent = "SEARCHING... Waiting for a challenger.";
+        }
       });
 
       socket.addEventListener("message", event => {
@@ -1833,7 +2104,26 @@
           resetSearch("Disconnected. Try finding a match again.");
         }
       });
-    });
+    }
+
+    $("findButton").addEventListener("click", () => startConnect(false));
+
+    if ($("practiceButton")) {
+      $("practiceButton").addEventListener("click", () => startConnect(true));
+    }
+
+    if ($("modeStandardBtn") && $("modeSuddenDeathBtn")) {
+      $("modeStandardBtn").addEventListener("click", () => {
+        selectedMode = "standard";
+        $("modeStandardBtn").classList.add("active");
+        $("modeSuddenDeathBtn").classList.remove("active");
+      });
+      $("modeSuddenDeathBtn").addEventListener("click", () => {
+        selectedMode = "sudden_death";
+        $("modeSuddenDeathBtn").classList.add("active");
+        $("modeStandardBtn").classList.remove("active");
+      });
+    }
 
     $("cancelButton").addEventListener("click", () => {
       const socket = ws;
@@ -1846,6 +2136,34 @@
       ws?.close();
       location.reload();
     });
+
+    function triggerSuddenDeathUI() {
+      if (isSuddenDeath) return;
+      isSuddenDeath = true;
+
+      const overlay = $("sudden-death-overlay");
+      if (overlay) {
+        overlay.hidden = false;
+        setTimeout(() => {
+          overlay.hidden = true;
+        }, 2700);
+      }
+
+      shakeCamera(0.55);
+
+      $("timer").classList.add("sudden-death");
+      if ($("sd-badge")) $("sd-badge").hidden = false;
+      if ($("elixir-row")) $("elixir-row").classList.add("elixir-2x-active");
+
+      // Shift lighting to dramatic sunset twilight
+      scene.fog.color.set("#180a22");
+      scene.background.set("#180a22");
+      sun.color.set("#ffaa77");
+      rimLight.color.set("#ff477e");
+      rimLight.intensity = 2.2;
+
+      notice("⚡ SUDDEN DEATH! FIRST TOWER DOWN WINS! 2X ELIXIR! ⚡");
+    }
 
     function handleMessage(data) {
       if (data.type === "server_stats") {
@@ -1873,6 +2191,11 @@
 
       if (data.room_id !== roomId) return;
 
+      if (data.type === "sudden_death") {
+        triggerSuddenDeathUI();
+        return;
+      }
+
       if (data.type === "state") {
         applyState(data);
       } else if (data.type === "deploy_ack") {
@@ -1885,13 +2208,19 @@
       } else if (data.type === "game_over") {
         finish(
           data.result,
-          data.reason === "time"
-            ? "Time expired. Remaining tower health decided the battle."
-            : data.reason === "disconnect"
-              ? "Your opponent left the arena."
-              : data.result === "draw"
-                ? "Both Kings fell together."
-                : "A King tower has fallen."
+          data.reason === "sudden_death_tower"
+            ? (data.result === "victory"
+                ? "SUDDEN DEATH VICTORY! You destroyed an enemy tower in extra time!"
+                : "SUDDEN DEATH DEFEAT! The enemy took down your tower in extra time!")
+            : data.reason === "tiebreaker"
+              ? "Sudden death expired. Lowest tower health decided the battle."
+              : data.reason === "time"
+                ? "Time expired. Remaining tower health decided the battle."
+                : data.reason === "disconnect"
+                  ? "Your opponent left the arena."
+                  : data.result === "draw"
+                    ? "Both Kings fell together."
+                    : "A King tower has fallen."
         );
       }
     }
@@ -1917,7 +2246,24 @@
       $("opponent-name").textContent = `🔴 ${data.opponent}`;
       $("player-name").textContent = `${data.username} 🔵`;
 
+      isSuddenDeath = Boolean(data.sudden_death);
+      towersAliveAtSd.clear();
+      $("timer").classList.toggle("sudden-death", isSuddenDeath);
+      if ($("sd-badge")) $("sd-badge").hidden = !isSuddenDeath;
+      if ($("elixir-row")) $("elixir-row").classList.toggle("elixir-2x-active", isSuddenDeath);
+
+      if (isSuddenDeath) {
+        triggerSuddenDeathUI();
+      } else {
+        scene.fog.color.set("#0a1925");
+        scene.background.set("#0a1925");
+        sun.color.set("#ffe9bf");
+        rimLight.color.set("#699dff");
+        rimLight.intensity = 1.5;
+      }
+
       buildHand(data.deck);
+      updateCameraTarget(true);
       resize();
     }
 
@@ -2006,6 +2352,13 @@
       elixir = data.elixir;
       remaining = data.remaining;
 
+      if (data.sudden_death && !isSuddenDeath) {
+        for (const t of data.towers) {
+          if (t.hp > 0) towersAliveAtSd.add(t.id);
+        }
+        triggerSuddenDeathUI();
+      }
+
       for (const state of data.towers) {
         let tower = towerModels.get(state.id);
         const p = localPoint(state.x, state.y);
@@ -2024,12 +2377,14 @@
 
         if (state.hp < tower.userData.hp) {
           burst(world.x, 1.5, world.z, "gold", 8);
+          shakeCamera(0.2);
         }
 
         if (state.hp <= 0 && tower.userData.hp > 0) {
           burst(world.x, 1.3, world.z, "gold", 35);
           tower.userData.building.scale.y = .16;
           tower.userData.building.rotation.z = .12;
+          shakeCamera(0.65);
         }
 
         tower.userData.hp = state.hp;
@@ -2085,6 +2440,23 @@
           finish("victory", "You destroyed the enemy King!");
         } else if (ownKing.hp <= 0) {
           finish("defeat", "Your King has fallen.");
+        }
+      }
+
+      // Sudden death early victory check if tower fell
+      if (!over && isSuddenDeath && towersAliveAtSd.size > 0) {
+        const ownTowerLost = data.towers.some(
+          t => t.owner === side && t.hp <= 0 && towersAliveAtSd.has(t.id)
+        );
+        const enemyTowerLost = data.towers.some(
+          t => t.owner !== side && t.hp <= 0 && towersAliveAtSd.has(t.id)
+        );
+        if (ownTowerLost && enemyTowerLost) {
+          finish("draw", "Both towers collapsed together in Sudden Death!");
+        } else if (enemyTowerLost) {
+          finish("victory", "SUDDEN DEATH VICTORY! You destroyed an enemy tower!");
+        } else if (ownTowerLost) {
+          finish("defeat", "SUDDEN DEATH DEFEAT! Your tower has fallen!");
         }
       }
     }
@@ -2204,6 +2576,11 @@
     });
 
     window.addEventListener("keydown", event => {
+      if (event.key === "c" || event.key === "C") {
+        cycleCameraPreset();
+        return;
+      }
+
       if (!inMatch || over || event.repeat) return;
 
       const index = Number(event.key) - 1;
@@ -2216,28 +2593,107 @@
 
     // -------------------- CAMERA / LOOP --------------------
 
+    // Camera Presets:
+    // Tactical: Classic isometric arena framing (~43.5° pitch), centered for optimal hand/top HUD clearance
+    // Action: Lower angle (~35.5° pitch), closer view for dramatic close-ups of troop clash
+    // Overhead: Top-down strategic perspective (~58° pitch) for full arena overview
+    const CAMERA_PRESETS = {
+      tactical: {
+        name: "TACTICAL",
+        fov: 37,
+        pitchDeg: 43.5,
+        target: new THREE.Vector3(0, 0.4, 1.8),
+        distScale: 1.0,
+        minDist: 44
+      },
+      action: {
+        name: "ACTION",
+        fov: 40,
+        pitchDeg: 35.5,
+        target: new THREE.Vector3(0, 0.6, 2.6),
+        distScale: 0.88,
+        minDist: 38
+      },
+      overhead: {
+        name: "OVERHEAD",
+        fov: 36,
+        pitchDeg: 58.0,
+        target: new THREE.Vector3(0, 0.2, 0.6),
+        distScale: 1.04,
+        minDist: 46
+      }
+    };
+
+    const CAM_KEYS = ["tactical", "action", "overhead"];
+    let camPresetIndex = 0;
+    let currentCamKey = CAM_KEYS[0];
+
+    const camTargetPos = new THREE.Vector3();
+    const camCurrentPos = new THREE.Vector3();
+    const camTargetLookAt = new THREE.Vector3();
+    const camCurrentLookAt = new THREE.Vector3();
+    let camInitialized = false;
+
+    let shakeIntensity = 0;
+    const shakeDecay = 8.0;
+
+    function shakeCamera(amount) {
+      shakeIntensity = Math.min(shakeIntensity + amount, 0.85);
+    }
+
+    function cycleCameraPreset() {
+      camPresetIndex = (camPresetIndex + 1) % CAM_KEYS.length;
+      currentCamKey = CAM_KEYS[camPresetIndex];
+      const preset = CAMERA_PRESETS[currentCamKey];
+      if ($("cam-name")) $("cam-name").textContent = preset.name;
+      updateCameraTarget(false);
+      notice(`Camera view: ${preset.name}`);
+    }
+
+    if ($("cam-toggle-btn")) {
+      $("cam-toggle-btn").addEventListener("click", cycleCameraPreset);
+    }
+
+    function updateCameraTarget(instant = false) {
+      const rect = $("viewport").getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const preset = CAMERA_PRESETS[currentCamKey];
+      camera.fov = preset.fov;
+      camera.aspect = rect.width / rect.height;
+
+      const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+      const horizontalFov =
+        2 * Math.atan(Math.tan(verticalFov / 2) * camera.aspect);
+
+      const distH = 14.5 / Math.tan(horizontalFov / 2);
+      const distV = 19.5 / Math.tan(verticalFov / 2);
+      const distance = Math.max(preset.minDist, distH, distV) * preset.distScale;
+
+      const pitchRad = THREE.MathUtils.degToRad(preset.pitchDeg);
+      const dy = distance * Math.sin(pitchRad);
+      const dz = distance * Math.cos(pitchRad);
+
+      camTargetLookAt.copy(preset.target);
+      camTargetPos.set(preset.target.x, preset.target.y + dy, preset.target.z + dz);
+
+      if (instant || !camInitialized) {
+        camera.position.copy(camTargetPos);
+        camCurrentPos.copy(camTargetPos);
+        camCurrentLookAt.copy(camTargetLookAt);
+        camera.lookAt(camCurrentLookAt);
+        camera.updateProjectionMatrix();
+        camera.updateMatrixWorld();
+        camInitialized = true;
+      }
+    }
+
     function resize() {
       const rect = $("viewport").getBoundingClientRect();
       if (!rect.width || !rect.height) return;
 
       renderer.setSize(rect.width, rect.height, false);
-      camera.aspect = rect.width / rect.height;
-
-      // Fit the complete board at both desktop and phone aspect ratios.
-      const verticalFov = THREE.MathUtils.degToRad(camera.fov);
-      const horizontalFov =
-        2 * Math.atan(Math.tan(verticalFov / 2) * camera.aspect);
-
-      const distance = Math.max(
-        48,
-        17 / Math.tan(horizontalFov / 2),
-        21 / Math.tan(verticalFov / 2)
-      );
-
-      camera.position.set(0, distance * .79, distance * .62);
-      camera.lookAt(0, 0, 0);
-      camera.updateProjectionMatrix();
-      camera.updateMatrixWorld();
+      updateCameraTarget(false);
     }
 
     new ResizeObserver(resize).observe($("viewport"));
@@ -2260,6 +2716,26 @@
       const time = now / 1000;
 
       if (inMatch) {
+        // Smooth camera lerp and screen shake
+        if (camInitialized) {
+          const lerpFactor = Math.min(dt * 7.5, 1);
+          camCurrentPos.lerp(camTargetPos, lerpFactor);
+          camCurrentLookAt.lerp(camTargetLookAt, lerpFactor);
+
+          camera.position.copy(camCurrentPos);
+
+          if (shakeIntensity > 0.001) {
+            camera.position.x += (Math.random() - 0.5) * shakeIntensity * 1.5;
+            camera.position.y += (Math.random() - 0.5) * shakeIntensity * 1.5;
+            camera.position.z += (Math.random() - 0.5) * shakeIntensity * 1.5;
+            shakeIntensity = Math.max(0, shakeIntensity - dt * shakeDecay);
+          }
+
+          camera.lookAt(camCurrentLookAt);
+          camera.updateProjectionMatrix();
+          camera.updateMatrixWorld();
+        }
+
         for (const line of waterLines) {
           line.position.x += dt * .25;
           if (line.position.x > 12) line.position.x = -12;
